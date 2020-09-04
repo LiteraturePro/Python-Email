@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import smtplib
 import random
@@ -18,20 +19,18 @@ from email.mime.text import MIMEText
 
 #*************定义数据库使用全局字段*************#
 
-user_name = 'root'                                    #数据库用户名
-password = '*******'                                     #数据库密码
-address = '172.27.0.9'   #数据库地址
+user_name = 'literature'                                    #数据库用户名
+password = 'yxl981204@'                                     #数据库密码
+address = 'rm-2zefgw4028bthwjxgvo.mysql.rds.aliyuncs.com'   #数据库地址
 port = 3306                                                 #数据库端口
 
 
-#*************Server酱SCKEY*************#
-sckey = 'SCU107437T845b42e2ad9cd989053b83d77bdf64e85f1fabb4cc842'
 
 #*************定义邮件全局字段*************#
 
 mail_host="smtp.qq.com"           #设置代理服务器，QQ邮箱，网易邮箱等
 mail_user="2440229611@qq.com"     #用户名
-mail_pass="********"      #邮件口令
+mail_pass="hczyrlhfykfwebhh"      #邮件口令
 
 
 
@@ -222,7 +221,7 @@ def _weather(url,word,setimage,setdata,vedio_str):
         <p><img src="%s"></p>
         <p>%s</p>
         <p> </p>
-        <p style="text-align:left">欢迎收听今日夜读！</p>
+        <p style="text-align:left">欢迎收听今天夜读！</p>
         <p id="audioplayer_1"></p>
         <audio id="audioplayer" preload="auto" controls style="width:380px" >
         <source src="%s" type="audio/mp3">
@@ -239,14 +238,13 @@ def _weather(url,word,setimage,setdata,vedio_str):
 
 #*************定义文字处理+调用seng_email发送函数*************#
 def text_send(people_df,weather_df,words_df):
-    mess=''
     now_time = datetime.datetime.now()
     str=datetime.datetime.now().strftime('%Y-%m-%d')
     vedio_str="http://qfile.k6366.com.cn/"+str+".mp3"
     words=words_df.values
     db=people_df.values
     db2=weather_df.values
-    sui=random.randint(0,2679)
+    sui=random.randint(0,2639)
     list=[]
     list1=[]
     for a in words[sui][0]:
@@ -260,7 +258,6 @@ def text_send(people_df,weather_df,words_df):
     word=''.join(list1)
     for a in db:
         to_addrs=a[2]
-        #to_addrs="2386629987@qq.com"
         city=a[1]
         #print (to_addrs)
         url=None
@@ -273,18 +270,19 @@ def text_send(people_df,weather_df,words_df):
             neirong=_weather(url,word,_goodmonring1(),_goodmonring2(),vedio_str)
             send_mail(to_addrs,"晚安鸭!",neirong)
             print (to_addrs+" success")
-            mess=mess+'\n\n'+to_addrs+" success"
             time.sleep(10)
         else:
             print (to_addrs+" err")
-            mess=mess+'\n'+to_addrs+" err"
-    return mess      
+    
 #*************定义一个定时的job函数*************#    
-def job(arg1, arg2):   
+def job():   
     people_df = Read_database (user_name,password,address,port,'users',''' SELECT * from user; ''' )
     weather_df = Read_database (user_name,password,address,port,'weather',''' SELECT * from weather; ''')
     words_df = Read_database (user_name,password,address,port,'words',''' SELECT * from word; ''')
-    text=text_send(people_df,weather_df,words_df)
-    requests.get('https://sc.ftqq.com/' + sckey + '.send?text=每日邮件投递通知&desp=' + text)
+    text_send(people_df,weather_df,words_df)
 
-  
+#schedule.every(5).minutes.do(main)       #部署每10分钟执行一次job()函数的任务
+schedule.every().day.at("23:00").do(job) #部署在每天的10:30执行job()函数的任务
+while True:
+    schedule.run_pending()
+    time.sleep(1)    
