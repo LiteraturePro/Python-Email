@@ -275,17 +275,17 @@ def text_send(people_df,weather_df,words_df):
             print (to_addrs+" err")
     
 #*************定义一个定时的job函数*************#    
-def job():   
-    people_df = Read_database (user_name,password,address,port,'users',''' SELECT * from wky; ''' )
+def main():   
+    people_df = Read_database (user_name,password,address,port,'users',''' SELECT * from test; ''' )
     weather_df = Read_database (user_name,password,address,port,'weather',''' SELECT * from weather; ''')
     words_df = Read_database (user_name,password,address,port,'words',''' SELECT * from word; ''')
     text_send(people_df,weather_df,words_df)
 
 #schedule.every(5).minutes.do(main)       #部署每10分钟执行一次job()函数的任务
-#schedule.every().day.at("23:00").do(job) #部署在每天的10:30执行job()函数的任务
+#schedule.every().day.at("23:00").do(main) #部署在每天的10:30执行job()函数的任务
 #while True:
 #    schedule.run_pending()
 #    time.sleep(1)    
 
 
-job()
+main()
