@@ -21,7 +21,7 @@ from email.mime.text import MIMEText
 
 user_name = 'literature'                                    #数据库用户名
 password = 'yxl981204@'                                     #数据库密码
-address = 'rm-2zefgw4028bthwjxgvo.mysql.rds.aliyuncs.com'   #数据库地址
+address = ''   #数据库地址
 port = 3306                                                 #数据库端口
 
 
@@ -30,7 +30,7 @@ port = 3306                                                 #数据库端口
 
 mail_host="smtp.qq.com"           #设置代理服务器，QQ邮箱，网易邮箱等
 mail_user="2440229611@qq.com"     #用户名
-mail_pass="hczyrlhfykfwebhh"      #邮件口令
+mail_pass=""      #邮件口令
 
 
 
