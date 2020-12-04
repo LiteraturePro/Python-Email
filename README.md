@@ -2,22 +2,25 @@
 Python版邮件推送，涉及Mysql , 云函数。
 
 ```Python
-def GetData():
-    """ 查询并返回所有符合条件的数据.
+def Updata(table,objectId):
+    """ 以objectId为唯一标识更新一条数据
     Date:
         2020-12-04
     Author:
         NJUPT-B18150118 YWX
     Args:
-        None.
+        table: 文档型数据库中的数据表.
+        objectId: 数据库中一条消息的唯一身份ID.
     Returns:
-        datas['results']: 返回按条件查询的的数据信息的results字段.
+        返回bmobs.update的状态值.
     Raises:
         IOError: None.
     """
-    datas = bmobs.find( # 查找数据库
-            "InfomationReq", #表名
-        where=BmobQuerier().addWhereEqualTo("did", "未推送")
-        ).jsonData
-    return datas['results']
+    return bmobs.update(
+            table, # 表名
+            objectId,
+                {
+                    'did': '已推送'
+                }
+        ).jsonData # 输出json格式的内容
 ```
