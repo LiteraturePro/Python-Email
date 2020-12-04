@@ -4,98 +4,239 @@ Python版邮件推送，涉及Mysql , 云函数。
 ```Java
 /**
  * All rights Reserved, Designed By NJUPT-B18150118
- * @Title:   WtimeActivity
+ * @Title:   AddInformationActivity
  * @Package  com.njupt.wtime
- * @Description:  定义WtimeActivity类继承自Activity类
+ * @Description:  定义AddInformationActivity类继承自Activity类
  * @author:  杨文旋
  * @date:   2020.12.03
  * @version  V1.0
  * @Copyright:  2020-2022 @njupt.edu.cn Inc. All rights reserved.
  */
 
-public class WtimeActivity extends Activity implements View.OnClickListener, WtimeAdapter.ItemClickListener {
+public class AddInformationActivity extends Activity implements View.OnClickListener {
 
-    private RecyclerView recyclerView;
-    private ImageView addBtn;
-    private WtimeAdapter WtimeAdapter;
-    private long exitTime = 0;
-    private final static int REQUEST_CODE = 999;
-    private List<InfomationReq> InfomationReqList;
-    //加功能
-    private TextView info_title;
+    private ImageView back;
+    private ImageView add;
+    private EditText title;
+    private EditText SEND_ID;
+    private Button time;
+    private InfomationReq infomationReq;
+    private boolean isChangeInfos;
+    private TimePickerView pvTime;
+    private String displayedText;
 
     @Override
-    /** 创建页面
+    /*** 创建页面
      * @author NJUPT-B18150118
      * @version 1.0
      */
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.wtime_main_activity);
-        /**注册腾讯云推送插件*/
-        /**该推送形式还没实现*/
-        XGPushConfig.enableDebug(this,false);
-        XGPushManager.registerPush(this, new XGIOperateCallback() {
-            @Override
-            public void onSuccess(Object data, int flag) {
-                //token在设备卸载重装的时候有可能会变
-                Log.d("TPush", "注册成功，设备token为：" + data);
-            }
+        setContentView(R.layout.add_infos_activity);
 
-            @Override
-            public void onFail(Object data, int errCode, String msg) {
-                Log.d("TPush", "注册失败，错误码：" + errCode + ",错误信息：" + msg);
-            }
-        });
         initView();
         initData();
+        initTimePicker();
+        //注册时间选择器
+        Button btn_Time = (Button) findViewById(R.id.btn_Time);
+        btn_Time.setOnClickListener(this);
         initListener();
-        //点击显示详情
-        info_title = (TextView) LayoutInflater.from(WtimeActivity.this).inflate(R.layout.time_item, null).findViewById(R.id.tv_title);
-        info_title.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent_show = new Intent(WtimeActivity.this, ShowInfoActivity.class);
-               startActivity(intent_show);
-            }
-        }
-        );
     }
-    /** 注册WtimeAdapter适配器
+
+    /*** 注册组件
      * @author NJUPT-B18150118
      * @version 1.0
      */
     private void initView() {
-        recyclerView = (RecyclerView) findViewById(R.id.rl_recyclerview);
-        addBtn = (ImageView) findViewById(R.id.iv_add);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        WtimeAdapter = new WtimeAdapter(WtimeActivity.this);
-        WtimeAdapter.setLongClickListener(this);
-
+        back = (ImageView) findViewById(R.id.iv_back);
+        add = (ImageView) findViewById(R.id.iv_add);
+        title = (EditText) findViewById(R.id.et_title);
+        SEND_ID = (EditText) findViewById(R.id.et_id_num);
+        time =(Button) findViewById(R.id.btn_Time);
     }
-    /** 初始化数据信息
+
+    /*** 初始数据
      * @author NJUPT-B18150118
      * @version 1.0
      */
     private void initData() {
-        BmobQuery<InfomationReq> InfomationReqBmobQuery = new BmobQuery<>();
-        InfomationReqBmobQuery.order("-updatedAt");//排序
-        InfomationReqBmobQuery.findObjects(new FindListener<InfomationReq>() {
+        infomationReq = (InfomationReq) getIntent().getSerializableExtra("editData");
+        if (infomationReq != null) {
+            isChangeInfos = true;//设置是否是信息更新操作
+            title.setText(infomationReq.getTitle());
+            SEND_ID.setText(infomationReq.getsendId());
+        }
+    }
+
+    private void initListener() {
+        back.setOnClickListener(this);
+        add.setOnClickListener(this);
+    }
+
+    @Override
+    /*** 监听按钮
+     * @author NJUPT-B18150118
+     * @version 1.0
+     */
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.iv_back:
+                finish();
+                break;
+            case R.id.iv_add:
+                addData();
+                break;
+            case R.id.btn_Time:
+                pvTime.show(v);//弹出时间选择器，传递参数过去，回调的时候则可以绑定此view
+                break;
+            default:
+                break;
+        }
+    }
+    /*** 添加信息
+     * @author NJUPT-B18150118
+     * @version 1.0
+     */
+    private void addData() {
+        String titleName = title.getText().toString().trim();
+        String Num = SEND_ID.getText().toString().trim();
+
+        if (TextUtils.isEmpty(titleName)) {
+            showToast("内容不能为空");
+            return;
+        }
+
+        if (TextUtils.isEmpty(Num)) {
+            showToast("推送ID不能为空");
+            return;
+        }
+        //判断是发表新的信息还是更改信息，然后调用相应的函数
+        if (isChangeInfos) {
+            updataInfo(titleName, Num, displayedText,"未推送");
+        } else {
+            publishLostInfo(titleName, Num, displayedText,"未推送");
+        }
+    }
+    /** 数据更新
+     * @author NJUPT-B18150118
+     * @version 1.0
+     * @param titleName 推送内容
+     * @param num     推送ID
+     * @param time 推送时间
+     * @param did  推送标记
+     */
+    private void updataInfo(String titleName, String num, String time,String did) {
+        InfomationReq InfomationReq = new InfomationReq();
+        InfomationReq.setTitle(titleName);
+        InfomationReq.setsendId(num);
+        InfomationReq.setTime(time);
+        InfomationReq.setDid(did);
+        InfomationReq.update(infomationReq.getObjectId(), new UpdateListener() {
             @Override
-            public void done(List<InfomationReq> list, BmobException e) {
+            public void done(BmobException e) {
                 if (e == null) {
-                    InfomationReqList = list;
-                    WtimeAdapter.setData(list);
-                    recyclerView.setAdapter(WtimeAdapter);
-                } else {
-                    showToast("查询数据失败");
+                    showToast("更新信息成功");
+                    //更新数据后提示主界面进行数据刷新
+                    Intent intent = new Intent();
+                    setResult(RESULT_OK, intent);
+                    finish();
                 }
             }
         });
     }
 
-    private void initListener() {
-        addBtn.setOnClickListener(this);
+    /** 数据添加
+     * @author NJUPT-B18150118
+     * @version 1.0
+     * @param titleName 推送内容
+     * @param num     推送ID
+     * @param time 推送时间
+     * @param did  推送标记
+     */
+    private void publishLostInfo(String titleName, String num, String time,String did) {
+        InfomationReq InfomationReq = new InfomationReq();
+        InfomationReq.setTitle(titleName);
+        InfomationReq.setsendId(num);
+        InfomationReq.setTime(time);
+        InfomationReq.setDid(did);
+        InfomationReq.save(new SaveListener<String>() {
+            @Override
+            public void done(String s, BmobException e) {
+                if (e == null) {
+                    showToast("事件设置成功");
+                    //成功后提示主界面刷新数据
+                    Intent intent = new Intent();
+                    setResult(RESULT_OK, intent);
+                    //成功后将页面销毁
+                    finish();
+                } else {
+                    showToast("事件设置失败");
+                }
+            }
+        });
+    }
+    /** 时间五级联动选择器
+     * @author NJUPT-B18150118
+     * @version 1.0
+     */
+    private void initTimePicker() {//Dialog 模式下，在底部弹出
+        pvTime = new TimePickerBuilder(this, new OnTimeSelectListener() {
+            @Override
+            public void onTimeSelect(Date date, View v) {
+                Toast myToast = Toast.makeText(AddInformationActivity.this, getTime(date), Toast.LENGTH_SHORT);
+                myToast.show();
+                displayedText = ((TextView)((LinearLayout)myToast.getView()).getChildAt(0)).getText().toString();
+                Log.i("pvTime", "onTimeSelect");
+
+            }
+        })
+                .setTimeSelectChangeListener(new OnTimeSelectChangeListener() {
+                    @Override
+                    public void onTimeSelectChanged(Date date) {
+                        Log.i("pvTime", "onTimeSelectChanged");
+                    }
+                })
+                .setType(new boolean[]{true, true, true, true, true, true})
+                .isDialog(true) //默认设置false ，内部实现将DecorView 作为它的父控件。
+                .addOnCancelClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.i("pvTime", "onCancelClickListener");
+                    }
+                })
+                .setItemVisibleCount(5) //若设置偶数，实际值会加1（比如设置6，则最大可见条目为7）
+                .setLineSpacingMultiplier(2.0f)
+                .isAlphaGradient(true)
+                .build();
+
+        Dialog mDialog = pvTime.getDialog();
+        if (mDialog != null) {
+
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.BOTTOM);
+
+            params.leftMargin = 0;
+            params.rightMargin = 0;
+            pvTime.getDialogContainerLayout().setLayoutParams(params);
+
+            Window dialogWindow = mDialog.getWindow();
+            if (dialogWindow != null) {
+                dialogWindow.setWindowAnimations(R.style.picker_view_slide_anim);//修改动画样式
+                dialogWindow.setGravity(Gravity.BOTTOM);//改成Bottom,底部显示
+                dialogWindow.setDimAmount(0.3f);
+            }
+        }
+    }
+    /** 时间选择器的时间类型自定义函数
+     * @author NJUPT-B18150118
+     * @version 1.0
+     */
+    private String getTime(Date date) {//可根据需要自行截取数据显示
+        Log.d("getTime()", "choice date millis: " + date.getTime());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return format.format(date);
     }
 
     /**
@@ -103,129 +244,6 @@ public class WtimeActivity extends Activity implements View.OnClickListener, Wti
      */
     private void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    /** 监听按钮
-     * @author NJUPT-B18150118
-     * @version 1.0
-     */
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.iv_add:
-                Intent intent = new Intent(WtimeActivity.this, AddInformationActivity.class);
-                startActivityForResult(intent, REQUEST_CODE);
-                break;
-            case R.id.tv_title:
-                Intent intent_show = new Intent(WtimeActivity.this, ShowInfoActivity.class);
-                startActivity(intent_show);
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    /** 数据刷新
-     * @author NJUPT-B18150118
-     * @version 1.0
-     */
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_CODE:
-                if (resultCode == RESULT_OK) {
-                    refreshData();//数据刷新
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    /** 查询最新的数据
-     * @author NJUPT-B18150118
-     * @version 1.0
-     */
-    private void refreshData() {
-        BmobQuery<InfomationReq> InfomationReqBmobQuery = new BmobQuery<>();
-        InfomationReqBmobQuery.order("-updatedAt");//按更新时间排序
-        InfomationReqBmobQuery.findObjects(new FindListener<InfomationReq>() {
-            @Override
-            public void done(List<InfomationReq> list, BmobException e) {
-                if (e == null) {
-                    InfomationReqList = list;
-                    WtimeAdapter.setData(list);
-                    WtimeAdapter.notifyDataSetChanged();
-                }
-            }
-        });
-    }
-
-    @Override
-    /** 返回按钮退出
-     * @author NJUPT-B18150118
-     * @version 1.0
-     */
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (System.currentTimeMillis() - exitTime > 2000) {
-                showToast("再按一次退出程序");
-                exitTime = System.currentTimeMillis();
-            } else {
-                android.os.Process.killProcess(android.os.Process.myPid());
-            }
-        }
-        return false;
-    }
-
-    @Override
-    /** 三段按钮逻辑函数
-     * @author NJUPT-B18150118
-     * @version 1.0
-     */
-    public void onEditOrDeleteClick(int position, int code) {
-
-        if (code == WtimeAdapter.EDIT_CODE) {
-            Intent intent = new Intent(WtimeActivity.this, AddInformationActivity.class);
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("editData", InfomationReqList.get(position));
-            intent.putExtras(bundle);
-            startActivityForResult(intent, REQUEST_CODE);
-        } else if (code == WtimeAdapter.DELETE_CODE) {
-            deleteItemData(position);
-        }else if (code == WtimeAdapter.OPEN_CODE){
-            Toast.makeText(WtimeActivity.this,"\\0^◇^0/",Toast.LENGTH_LONG).show();
-//            Intent intent_show = new Intent(LostAndFoundActivity.this, ShowInfoActivity.class);
-//            startActivity(intent_show);
-            Intent intent = new Intent(WtimeActivity.this, ShowInfoActivity.class);
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("showData", InfomationReqList.get(position));
-            intent.putExtras(bundle);
-            startActivityForResult(intent, REQUEST_CODE);
-        }
-    }
-    /** 数据删除函数
-     * @author NJUPT-B18150118
-     * @version 1.0
-     */
-    private void deleteItemData(final int position) {
-        if (InfomationReqList.size() != 0) {
-            InfomationReq InfomationReq = new InfomationReq();
-            InfomationReq.setObjectId(InfomationReqList.get(position).getObjectId());
-            InfomationReq.delete(new UpdateListener() {
-                @Override
-                public void done(BmobException e) {
-                    if (e == null) {
-                        InfomationReqList.remove(position);
-                        WtimeAdapter.setData(InfomationReqList);
-                        WtimeAdapter.notifyDataSetChanged();
-                    } else {
-                        showToast("删除数据失败");
-                    }
-                }
-            });
-        }
     }
 }
 ```
