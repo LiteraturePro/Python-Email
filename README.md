@@ -1,37 +1,23 @@
 # Python-Email
 Python版邮件推送，涉及Mysql , 云函数。
 
-```Java
-
-/**
- * All rights Reserved, Designed By NJUPT-B18150118
- * @Title:   RegisterUser
- * @Package  com.njupt.wtime.bean
- * @Description:  定义RegisterUser类继承自BmobObject类，用户注册类
- * @author:  杨文旋
- * @date:   2020.12.02
- * @version  V1.0
- * @Copyright:  2020-2022 @njupt.edu.cn Inc. All rights reserved.
- */
-public class RegisterUser extends BmobObject {
-    private String registerName;      //注册用户名
-    private String registerPassword;  //注册密码
-
-    public String getRegisterName() {
-        return registerName;
-    }
-
-    public void setRegisterName(String registerName) {
-        this.registerName = registerName;
-    }
-
-    public String getRegisterPassword() {
-        return registerPassword;
-    }
-
-    public void setRegisterPassword(String registerPassword) {
-        this.registerPassword = registerPassword;
-    }
-}
-
+```Python
+def GetData():
+    """ 查询并返回所有符合条件的数据.
+    Date:
+        2020-12-04
+    Author:
+        NJUPT-B18150118 YWX
+    Args:
+        None.
+    Returns:
+        datas['results']: 返回按条件查询的的数据信息的results字段.
+    Raises:
+        IOError: None.
+    """
+    datas = bmobs.find( # 查找数据库
+            "InfomationReq", #表名
+        where=BmobQuerier().addWhereEqualTo("did", "未推送")
+        ).jsonData
+    return datas['results']
 ```
