@@ -2,50 +2,37 @@
 Python版邮件推送，涉及Mysql , 云函数。
 
 ```Java
-package com.njupt.wtime;
-
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
-import com.njupt.wtime.bean.RegisterUser;
-import java.util.List;
-import cn.bmob.v3.BmobQuery;
-import cn.bmob.v3.BmobUser;
-import cn.bmob.v3.exception.BmobException;
-import cn.bmob.v3.listener.FindListener;
-import cn.bmob.v3.listener.SaveListener;
-
 /**
  * All rights Reserved, Designed By NJUPT-B18150118
- * @Title:   RegisterActivity
+ * @Title:   LoginActivity
  * @Package  com.njupt.wtime
- * @Description:  定义RegisterActivity类继承自Activity类
+ * @Description:  定义LoginActivity类继承自Activity类
  * @author:  杨文旋
  * @date:   2020.12.03
  * @version  V1.0
  * @Copyright:  2020-2022 @njupt.edu.cn Inc. All rights reserved.
  */
 
-public class RegisterActivity extends Activity implements View.OnClickListener {
+public class LoginActivity extends Activity implements View.OnClickListener {
+    private EditText accountLoginName;
+    private EditText accountLoginPassword;
+    private Button loginBtn;
+    private TextView registerAccountBtn;
+    private ProgressBar progressBar;
+    private LinearLayout llLogin;
 
 
-    private EditText accountRegisterName;
-    private EditText accountRegisterPassword;
-    private Button registerBtn;
-    private TextView registerBackBtn;
 
     @Override
+    /*** 创建登录页面
+     * @author NJUPT-B18150118
+     * @version 1.0
+     */
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        /**加载xml文件*/
-        setContentView(R.layout.register_account);
 
+        /**加载xml文件*/
+        setContentView(R.layout.login_accountlogin);
         initView();
         initData();
         initListener();
@@ -58,13 +45,34 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
      * @use  进行一些初始化的定义，把他们都放在一个initView里面，然后直接调用这个函数就可以完成初始化了
      */
     private void initView() {
-        accountRegisterName = (EditText) findViewById(R.id.i8_accountRegister_name);
-        accountRegisterPassword = (EditText) findViewById(R.id.i8_accountRegister_password);
-        registerBtn = (Button) findViewById(R.id.i8_accountRegistern_toRegister);
-        registerBackBtn = (TextView) findViewById(R.id.register_back_btn);
+        accountLoginName = (EditText) findViewById(R.id.i8_accountLogin_name);
+        accountLoginPassword = (EditText) findViewById(R.id.i8_accountLogin_password);
+        loginBtn = (Button) findViewById(R.id.i8_accountLogin_toLogin);
+        registerAccountBtn = (TextView) findViewById(R.id.register_account_btn);
+        progressBar = (ProgressBar) findViewById(R.id.pb);
+        llLogin = (LinearLayout) findViewById(R.id.ll_login);
     }
 
     private void initData() {}
+
+    /*** 显示进度条
+     * @author NJUPT-B18150118
+     * @version 1.0
+     */
+    private void showProgressBar() {
+        progressBar.setVisibility(View.VISIBLE);
+        llLogin.setVisibility(View.GONE);
+    }
+
+
+    /*** 隐藏进度条
+     * @author NJUPT-B18150118
+     * @version 1.0
+     */
+    private void hiddenProgressBar() {
+        progressBar.setVisibility(View.GONE);
+        llLogin.setVisibility(View.VISIBLE);
+    }
 
     /*** 定义监听函数
      * @author NJUPT-B18150118
@@ -72,9 +80,8 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
      * @use  进行页面监听，等待用户操作
      */
     private void initListener() {
-
-        registerBtn.setOnClickListener(this);
-        registerBackBtn.setOnClickListener(this);
+        loginBtn.setOnClickListener(this);
+        registerAccountBtn.setOnClickListener(this);
     }
 
     @Override
@@ -84,103 +91,65 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
      */
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.i8_accountRegistern_toRegister:
-                /**点击登录，调用注册函数*/
-                bmobRegisterAccount();
+            case R.id.i8_accountLogin_toLogin:
+                /**点击登录，调用登录函数*/
+                bmobUserAccountLogin();
                 break;
-            case R.id.register_back_btn:
-                /**点击返回登录页面*/
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            case R.id.register_account_btn:
+                /**点击注册，跳转到注册界面*/
+                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
                 startActivity(intent);
+                break;
             default:
                 break;
         }
     }
 
-    /**  bmob注册账号
-     * @author NJUPT-B18150118
-     * @version 1.0
-     */
-    private void bmobRegisterAccount() {
-        final String registerName = accountRegisterName.getText().toString().trim();
-        final String registerPassword = accountRegisterPassword.getText().toString().trim();
+    private void bmobUserAccountLogin() {
 
-        if (TextUtils.isEmpty(registerName) || TextUtils.isEmpty(registerPassword)) {
-            showToast("注册账号或密码为空");
+        final String accountName = accountLoginName.getText().toString().trim();
+        final String accountPassword = accountLoginPassword.getText().toString().trim();
+
+        if (TextUtils.isEmpty(accountName)) {
+            showToast("账号不能为空");
             return;
         }
 
-
-        /**BmobUser类为Bmob后端云提供类*/
-        BmobUser bmobUser = new BmobUser();
-        bmobUser.setUsername(registerName);
-        bmobUser.setPassword(registerPassword);
-        bmobUser.signUp(new SaveListener<BmobUser>() {
-            @Override
-            public void done(BmobUser bmobUser, BmobException e) {
-                if (e == null) {
-                    showToast("恭喜，注册账号成功");
-                    finish();
-                } else {
-                    showToast("register fail:" + e.getMessage());
-                }
-            }
-        });
-    }
-
-    /**
-     * 账号注册
-     */
-    private void registerAccount() {
-        final String registerName = accountRegisterName.getText().toString().trim();
-        final String registerPassword = accountRegisterPassword.getText().toString().trim();
-
-        if (TextUtils.isEmpty(registerName) || TextUtils.isEmpty(registerPassword)) {
-            showToast("注册账号或密码为空");
+        if (TextUtils.isEmpty(accountPassword)) {
+            showToast("密码不能为空");
             return;
         }
 
-        /**已存在账号的查询*/
-        BmobQuery<RegisterUser> registerUserBmobQuery = new BmobQuery<>();
-        registerUserBmobQuery.order("-createdAt");
-        registerUserBmobQuery.findObjects(new FindListener<RegisterUser>() {
+        /**显示进度条*/
+        showProgressBar();
+        /**登录过程*/
+        new Handler().postDelayed(new Runnable() {
             @Override
-            public void done(List<RegisterUser> lists, BmobException e) {
-                for (RegisterUser list : lists) {
-                    if (registerName.equals(list.getRegisterName())) {
-                        showToast("账号已被注册，请重新输入");
-                    } else {
-                        registerAccount(registerName, registerPassword);
+            public void run() {
+
+                /**BmobUser类为Bmob后端云提供类*/
+                BmobUser bmobUser = new BmobUser();
+                bmobUser.setUsername(accountName);
+                bmobUser.setPassword(accountPassword);
+
+                bmobUser.login(new SaveListener<BmobUser>() {
+                    @Override
+                    public void done(BmobUser bmobUser, BmobException e) {
+                        if (e == null) {
+                            /**登录成功后进入主界面*/
+                            Intent intent = new Intent(LoginActivity.this, WtimeActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            showToast(""+e.getMessage());
+                            /**隐藏进度条*/
+                            hiddenProgressBar();
+                        }
                     }
-                }
+                });
             }
-        });
+        }, 3000);
     }
-
-
-    /**
-     * 注册账号，将用户账号密码添加进数据库
-     * @author NJUPT-B18150118
-     * @param registerName     注册名
-     * @param registerPassword 密码
-     */
-    private void registerAccount(String registerName, String registerPassword) {
-        RegisterUser registerUser = new RegisterUser();
-        registerUser.setRegisterName(registerName);
-        registerUser.setRegisterPassword(registerPassword);
-        registerUser.save(new SaveListener<String>() {
-            @Override
-            public void done(String s, BmobException e) {
-                if (e == null) {
-                    showToast("恭喜，注册账号成功");
-                    finish();
-                } else {
-                    showToast("注册账号失败");
-                }
-            }
-        });
-    }
-
     /**
      * @author NJUPT-B18150118
      * @version 1.0
@@ -189,6 +158,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
     private void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
+
 }
 
 ```
