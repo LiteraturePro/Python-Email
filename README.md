@@ -11,7 +11,7 @@
 
 The webapi is deployed Leancloud here - http://lean-api.wxiou.cn/
 
-The webapi is deployed Tencent Serverless here - https://e.ioer.cc/
+The webapi is deployed Tencent Serverless here -
 ![](https://pcdn.wxiou.cn/20210407201747.png)
 ![](https://pcdn.wxiou.cn/20210328182145.png)
 
