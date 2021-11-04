@@ -45,14 +45,12 @@ def send_mail(to_list,sub,content):                               #定义一个�
 
 #*************定义html构建函数*************#
 def get_html(cityname):
-    url = 'https://service-4ua9qtvz-1258693536.sh.apigw.tencentcs.com/release/api'
-    #url = 'https://service-4ua9qtvz-1258693536.sh.apigw.tencentcs.com/release/api2'
-    #url = 'http://lean-api.wxiou.cn/api'
+    url = 'http://lean-api.wxiou.cn/api'
     #url = 'http://lean-api.wxiou.cn/api2'
     datas ={
         'cityname':cityname
     }
-    response = requests.get(url=url,data=datas)
+    response = requests.post(url=url,data=datas)
     datas = json.loads(response.text)
     print(datas)
 
