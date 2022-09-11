@@ -43,7 +43,7 @@ def get_infos(**params):
                 }
             list.append(data)
         # 声明 class
-        Words = leancloud.Object.extend('words')
+        Words = leancloud.Object.extend('word')
 
         # 构建对象
         words = Words()
