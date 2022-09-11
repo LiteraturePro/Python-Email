@@ -1,10 +1,11 @@
-#!/usr/bin/python
-# -*- coding: UTF-8 -*-
+# -*- coding:utf-8 -*-
+import json
 import smtplib
 import requests
 import string
 import json
-import pandas as pd
+from bmob import *
+import bmob
 from email.utils import parseaddr,formataddr
 from email.header import Header
 from email.mime.text import MIMEText
@@ -13,8 +14,8 @@ from email.mime.text import MIMEText
 #*************定义邮件全局字段*************#
 
 mail_host="smtp.qq.com"           #设置代理服务器，QQ邮箱，网易邮箱等
-mail_user="2440229611@qq.com"     #用户名
-mail_pass=""      #邮件口令
+mail_user="xxxxx@qq.com"     #用户名
+mail_pass="xxxxxxxxxxx"      #邮件口令
 
 
 #*************定义辅助函数*************#
@@ -38,75 +39,80 @@ def send_mail(to_list,sub,content):                               #定义一个�
         server.sendmail(me, to_list, msg.as_string())
         server.close()
         return True
-    except:
+    except Exception as e:
+        print("报错信息如下：")
+        print(e)
         return False
     
     
 
 #*************定义html构建函数*************#
-def get_html(cityname):
+def get_html():
+    #url = 'https://service-4ua9qtvz-1258693536.sh.apigw.tencentcs.com/release/api'
     url = 'http://lean-api.wxiou.cn/api'
-    #url = 'http://lean-api.wxiou.cn/api2'
+    #url = 'https://e.ioer.cc/api'
     datas ={
-        'cityname':cityname
+        'key':'防止接口乱用'
     }
     response = requests.post(url=url,data=datas)
     datas = json.loads(response.text)
-    print(datas)
-
-    message =  """
-    <!DOCTYPE HTML>
-    <html>
-    <head>
-    <meta charset="utf-8"/>
-    <title>段落缩进</title>
-    <style>
-        .p1{text-indent: 40px;}
-        .p2{text-indent: 3em;}
-    </style>
-    <script type="text/javascript">
-        var audioTag = document.createElement('audio');
-        if (!(!!(audioTag.canPlayType) && ("no" != audioTag.canPlayType("audio/mpeg")) && ("" != audioTag.canPlayType("audio/mpeg")))) {
-            AudioPlayer.embed("audioplayer_1", {soundFile: "your.mp3", transparentpagebg: "yes"});
-            $( '#audioplayer').hide();
-     }
-        else 
-        {
-            $( '#audioplayer' ).audioPlayer();
+    # print(datas)
+    for data in datas['data']:
+        message =  """
+        <!DOCTYPE HTML>
+        <html>
+        <head>
+        <meta charset="utf-8"/>
+        <title>段落缩进</title>
+        <style>
+            .p1{text-indent: 40px;}
+            .p2{text-indent: 3em;}
+        </style>
+        <script type="text/javascript">
+            var audioTag = document.createElement('audio');
+            if (!(!!(audioTag.canPlayType) && ("no" != audioTag.canPlayType("audio/mpeg")) && ("" != audioTag.canPlayType("audio/mpeg")))) {
+                AudioPlayer.embed("audioplayer_1", {soundFile: "your.mp3", transparentpagebg: "yes"});
+                $( '#audioplayer').hide();
         }
-    </script>
-    </head>
-    <body>
-        <p><img src="%s"></p>
-        <p>%s</p>
-        <p> </p>
-        <p style="text-align:left">欢迎收听今天夜读！</p>
-        <p id="audioplayer_1"></p>
-        <audio id="audioplayer" preload="auto" controls style="width:380px" >
-        <source src="%s" type="audio/mp3">
-        </audio>
-        <p style="text-align:left">明日天气：%s</p>
-        <p style="text-align:left">最高温度：%s ℃</p>
-        <p style="text-align:left">最低温度：%s ℃</p>
-        <p style="text-align:right">晚安！   </p>
-        <p style="text-align:right">%s</p>
-        </body>
-    </html>
-    """%(datas['image'],datas['word'],datas['voice'],datas['weather'][1],datas['weather'][2],datas['weather'][3],datas['date'])
-    return message 
-
-#*************定义文字处理+调用seng_email发送函数*************#
-def mail_send():
-    
-    cityname = "nanjing"
-    to_addrs = "2xxxxxx@qq.com"
-    
-    html = get_html(cityname)
-    if send_mail(to_addrs,"晚安鸭!",html) = True:
-        print (to_addrs+" success")
-    else:
-        print("error")
-
+            else 
+            {
+                $( '#audioplayer' ).audioPlayer();
+            }
+        </script>
+        </head>
+        <body>
+            <p><img src="%s"></p>
+            <p>%s</p>
+            <p> </p>
+            <p style="text-align:left">欢迎收听今天夜读！</p>
+            <p id="audioplayer_1"></p>
+            <audio id="audioplayer" preload="auto" controls style="width:380px" >
+            <source src="%s" type="audio/mp3">
+            </audio>
+            <p style="text-align:left">明日天气：%s</p>
+            <p style="text-align:left">最高温度：%s ℃</p>
+            <p style="text-align:left">最低温度：%s ℃</p>
+            <p style="text-align:right">晚安！   </p>
+            <p style="text-align:right">%s</p>
+            </body>
+        </html>
+        """%(data[1],data[2],data[4],data[6],data[7],data[8],data[3])
         
-if __name__ == "__main__":
-    mail_send()
+        try:
+            to_addrs = data[0]
+
+            view = send_mail(to_addrs,"晚安鸭!",message)
+
+            if view == False:
+                view2 = send_mail(to_addrs,"晚安鸭!",message)
+                if view2 == False:
+                    send_mail(to_addrs,"晚安鸭!",message)
+
+        except Exception as e:
+            print(e)
+
+    return 0
+
+#*************发送函数*************#
+def handler (event, context):
+    get_html()
