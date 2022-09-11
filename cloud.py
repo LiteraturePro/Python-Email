@@ -6,6 +6,14 @@ import uuid
 from bs4 import BeautifulSoup
 engine = Engine()
 
+def download_img(url,path):
+  try:
+    respone = requests.get(url)
+    f_img = respone.content
+    with open(path, "wb")as f:
+        f.write(f_img)
+  except Exception as e:
+    print("---------地址出错------------")
 
 @engine.define
 def get_infos(**params):
@@ -55,8 +63,14 @@ def get_infos(**params):
         # 将对象保存到云端
         words.save()
         
-        file = leancloud.File.create_with_url(str(uuid.uuid4())+'.png', list[0]["image"])
-        file.save()
+        img_path  = str(uuid.uuid4())+'.png'
+        
+        download_img(list[0]["image"],'/tmp/'+img_path)
+        
+        with open(('/tmp/'+img_path, 'rb') as f:
+            file = leancloud.File(img_path, f)
+            file.key = img_path
+            file.save()
         print(file.url)
 
         return list[0]["word"]
