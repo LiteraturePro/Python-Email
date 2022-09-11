@@ -19,8 +19,6 @@ leancloud.init(APP_ID, app_key=APP_KEY, master_key=MASTER_KEY)
 # Set this to be True if you need to access LeanCloud services with Master Key.
 leancloud.use_master_key(False)
 
-# Uncomment the following line to redirect HTTP requests to HTTPS.
-# app = leancloud.HttpsRedirectMiddleware(app)
 app = engine.wrap(app)
 application = app
 
