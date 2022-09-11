@@ -114,4 +114,4 @@ def api():
         content.append(get_weather(user.get("city"))[2])
         content.append(get_weather(user.get("city"))[3])
         lists.append(content)
-    return lists
+    return {'data':lists}
