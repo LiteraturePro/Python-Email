@@ -5,6 +5,7 @@ import os
 import leancloud 
 import datetime
 import requests
+from bs4 import BeautifulSoup
 leancloud.init(os.environ['LEANCLOUD_APP_ID'], master_key=os.environ['LEANCLOUD_APP_MASTER_KEY'])
 
 
