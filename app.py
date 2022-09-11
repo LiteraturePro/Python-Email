@@ -99,22 +99,26 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/api')
+@app.route('/api', methods=['GET', "POST"])
 def api():
-    lists = []
-    users = leancloud.Object.extend('users')
-    users_query = users.query
-    users_list = users_query.find()
-    for user in users_list:
-        content = []
-        content.append(user.get("address"))
-        content.append(get_info().get("image"))
-        content.append(get_info().get("word"))
-        content.append(get_info().get("date"))
-        content.append("http://leancloud.wxiou.cn/"+datetime.datetime.now().strftime('%Y-%m-%d')+".mp3")
-        content.append(get_weather(user.get("city"))[0])
-        content.append(get_weather(user.get("city"))[1])
-        content.append(get_weather(user.get("city"))[2])
-        content.append(get_weather(user.get("city"))[3])
-        lists.append(content)
-    return {'data':lists}
+    key = request.form.get('key')
+    if key == os.environ['KEY']:
+        lists = []
+        users = leancloud.Object.extend('users')
+        users_query = users.query
+        users_list = users_query.find()
+        for user in users_list:
+            content = []
+            content.append(user.get("address"))
+            content.append(get_info().get("image"))
+            content.append(get_info().get("word"))
+            content.append(get_info().get("date"))
+            content.append(os.environ['File_url']+datetime.datetime.now().strftime('%Y-%m-%d')+".mp3")
+            content.append(get_weather(user.get("city"))[0])
+            content.append(get_weather(user.get("city"))[1])
+            content.append(get_weather(user.get("city"))[2])
+            content.append(get_weather(user.get("city"))[3])
+            lists.append(content)
+        return {'data':lists}
+    else:
+        return {'err_message':"请输入KEY参数进行验证"}
