@@ -55,7 +55,7 @@ def get_infos(**params):
         # 将对象保存到云端
         words.save()
         
-        file = leancloud.File.create_with_url(uuid.uuid4()+'.png', list[0]["image"])
+        file = leancloud.File.create_with_url(str(uuid.uuid4())+'.png', list[0]["image"])
         file.save()
         print(file.url)
 
