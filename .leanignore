@@ -2,5 +2,6 @@
 .avoscloud/
 .leancloud/
 venv
+email.py
 *.pyc
 __pycache__/
