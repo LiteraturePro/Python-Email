@@ -67,7 +67,7 @@ def get_infos(**params):
         
         download_img(list[0]["image"],'/tmp/'+img_path)
         
-        with open(('/tmp/'+img_path, 'rb') as f:
+        with open('/tmp/'+img_path, 'rb') as f:
             file = leancloud.File(img_path, f)
             file.key = img_path
             file.save()
