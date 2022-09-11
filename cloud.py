@@ -2,6 +2,7 @@ from leancloud import Engine
 from leancloud import LeanEngineError
 import leancloud
 import requests
+import uuid
 from bs4 import BeautifulSoup
 engine = Engine()
 
@@ -46,11 +47,16 @@ def get_infos(**params):
 
         # 构建对象
         words = Words()
-        print(list[0])
+        print(list[0]["word"])
+        print(list[0]["image"])
 
         # 为属性赋值
-        words.set('word',   list[0].get("word"))
+        words.set('word', list[0]["word"])
         # 将对象保存到云端
         words.save()
+        
+        file = leancloud.File.create_with_url(uuid.uuid4()+'.png', list[0]["image"])
+        file.save()
+        print(file.url)
 
-        return list[0].get("word")
+        return list[0]["word"]
