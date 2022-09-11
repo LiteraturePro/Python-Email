@@ -1,1 +1,0 @@
-(function hitokoto(){var hitokoto="趁着年轻，好好犯病。";var dom=document.querySelector('#hitokoto');Array.isArray(dom)?dom[0].innerText=hitokoto:dom.innerText=hitokoto;})()
