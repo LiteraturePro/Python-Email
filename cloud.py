@@ -1,7 +1,8 @@
 from leancloud import Engine
 from leancloud import LeanEngineError
 import leancloud
-
+import requests
+from bs4 import BeautifulSoup
 engine = Engine()
 
 # 内容爬取
