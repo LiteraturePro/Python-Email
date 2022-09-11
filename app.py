@@ -6,6 +6,8 @@ import leancloud
 import datetime
 import requests
 from bs4 import BeautifulSoup
+
+
 leancloud.init(os.environ['LEANCLOUD_APP_ID'], master_key=os.environ['LEANCLOUD_APP_MASTER_KEY'])
 
 
@@ -91,6 +93,7 @@ def get_weather(url):
 
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 @app.route('/')
 def index():
     return render_template('index.html')
