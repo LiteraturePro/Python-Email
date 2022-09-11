@@ -102,6 +102,8 @@ def index():
 @app.route('/api', methods=['GET', "POST"])
 def api():
     key = request.form.get('key')
+    print(key)
+    print(os.environ['KEY'])
     if key == os.environ['KEY']:
         lists = []
         users = leancloud.Object.extend('users')
